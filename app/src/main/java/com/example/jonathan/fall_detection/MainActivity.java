@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     }
 
-//TODO: App crashes here fix it
+//TODO: App crashes here fix it maybe need to unregister listener?
     @Override
     public void onSensorChanged(SensorEvent event) {
         double rootSquare = 0.0;
