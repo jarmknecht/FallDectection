@@ -20,7 +20,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     float accelValuesY[] = new float[sensorValuesSize];
     float accelValuesZ[] = new float[sensorValuesSize];
     int index = 0;
-    int k = 0;
     boolean fallDetected = false;
 
 
