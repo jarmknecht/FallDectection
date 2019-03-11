@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     Math.pow(accelValuesZ[index], 2));
 
             if (rootSquare < 2.0) {
-                //Toast.makeText(this, "Fall Detected", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Fall Detected", Toast.LENGTH_LONG).show();
                 fallDetected = true;
             }
             if (fallDetected) {
