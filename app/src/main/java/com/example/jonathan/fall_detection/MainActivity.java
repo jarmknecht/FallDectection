@@ -5,6 +5,8 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -21,6 +23,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     float accelValuesZ[] = new float[sensorValuesSize];
     int index = 0;
     boolean fallDetected = false;
+    public MediaPlayer fallSound;
+
 
 
     @Override
@@ -33,11 +37,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         //get accel sensor and register it an check it every 2 ms at least
         sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
                 SensorManager.SENSOR_DELAY_NORMAL);
+        fallSound = MediaPlayer.create(this, R.raw.fall);
+        fallSound.setVolume(10000, 10000);
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
         Sensor _sensor = event.sensor;
+        fallDetected = false;
         double rootSquare = 0.0;
         if (_sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             index++;
@@ -63,11 +70,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 fallDetected = true;
             }
             if (fallDetected) {
+                fallSound.start();
                 text.setText("FALL DETECTED!");
             }
-            else {
+            /*else {
                 text.setText("Fall not Detected");
-            }
+            }*/
         }
     }
 
