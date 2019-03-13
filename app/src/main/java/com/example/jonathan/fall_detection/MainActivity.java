@@ -111,7 +111,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }.start();
         startActivityForResult(intent, VOICE_RECOGNITION_REQUEST_CODE);
     }
-
+//TODO: add so case doesn't matter with the words received
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
 
