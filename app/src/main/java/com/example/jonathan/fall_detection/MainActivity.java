@@ -15,12 +15,15 @@ import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.ListIterator;
+import java.util.function.UnaryOperator;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
@@ -109,49 +112,60 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
             }
         }.start();
+        Log.d("Starting for result", "ugh");
         startActivityForResult(intent, VOICE_RECOGNITION_REQUEST_CODE);
+        Log.d("Finished call forresult", "work");
     }
-//TODO: add so case doesn't matter with the words received
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
 
-        if (requestCode == VOICE_RECOGNITION_REQUEST_CODE && resultCode == RESULT_OK) {
-            ArrayList<String> matches = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-
-            if (matches.contains("yes")) {
-                speechDetected = true;
-                text.setText("User said yes!");
-                //call sms function
+        if (requestCode == VOICE_RECOGNITION_REQUEST_CODE) {
+            Log.d("IN ON RESULT", "blah");
+            if (resultCode == RESULT_OK) {
+                ArrayList<String> matches = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                ListIterator<String> iter = matches.listIterator();
+                while (iter.hasNext()) { //set everything to lowercase for checking purposes
+                    iter.set(iter.next().toLowerCase());
+                }
+                if (matches.contains("yes")) {
+                    speechDetected = true;
+                    text.setText("User said yes!");
+                    //call sms function
+                }
+                if (matches.contains("call for help")) {
+                    speechDetected = true;
+                    text.setText("User said yes!");
+                    //call sms function
+                }
+                if (matches.contains("help")) {
+                    speechDetected = true;
+                    text.setText("User said yes!");
+                    //call sms function
+                }
+                if (matches.contains("no")) {
+                    fallDetected = false;
+                    speechDetected = true;
+                    text.setText("User is okay!");
+                }
+                if (matches.contains("i'm all right")) {
+                    fallDetected = false;
+                    speechDetected = true;
+                    text.setText("User is okay!");
+                }
+                if (matches.contains("i'm okay")) {
+                    fallDetected = false;
+                    speechDetected = true;
+                    text.setText("User is okay!");
+                }
+                if (matches.contains("i'm fine")) {
+                    fallDetected = false;
+                    speechDetected = true;
+                    text.setText("User is okay!");
+                }
             }
-            if (matches.contains("call for help")) {
-                speechDetected = true;
-                text.setText("User said yes!");
-                //call sms function
-            }
-            if (matches.contains("help")) {
-                speechDetected = true;
-                text.setText("User said yes!");
-                //call sms function
-            }
-            if (matches.contains("no")) {
-                fallDetected = false;
-                speechDetected = true;
-                text.setText("User is okay!");
-            }
-            if (matches.contains("I'm all right")) {
-                fallDetected = false;
-                speechDetected = true;
-                text.setText("User is okay!");
-            }
-            if (matches.contains("I'm okay")) {
-                fallDetected = false;
-                speechDetected = true;
-                text.setText("User is okay!");
-            }
-            if (matches.contains("I'm fine")) {
-                fallDetected = false;
-                speechDetected = true;
-                text.setText("User is okay!");
+            if (resultCode != RESULT_OK) {
+                Log.d("CANCELLED!!", "oops");
             }
         }
     }
