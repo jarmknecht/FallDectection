@@ -35,9 +35,9 @@ import java.util.ListIterator;
 public class MainActivity extends AppCompatActivity implements SensorEventListener, LocationListener {
 
     private SensorManager sensorManager;
-    private TextView text;
-    private TextView lon;
-    private TextView lat;
+    //private TextView text;
+    //private TextView lon;
+    //private TextView lat;
     static int sensorValuesSize = 70;
     float accelValuesX[] = new float[sensorValuesSize];
     float accelValuesY[] = new float[sensorValuesSize];
@@ -56,9 +56,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        text = (TextView) findViewById(R.id.Fall);
-        lon = (TextView) findViewById(R.id.lon);
-        lat = (TextView) findViewById(R.id.lat);
+        //text = (TextView) findViewById(R.id.Fall);
+        //lon = (TextView) findViewById(R.id.lon);
+        //lat = (TextView) findViewById(R.id.lat);
         //Get the systems sensor
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         //get accel sensor and register it an check it every 2 ms at least
@@ -118,7 +118,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
             if (fallDetected) {
                 fallSound.start();
-                text.setText("FALL DETECTED!");
+                //text.setText("FALL DETECTED!");
                 (new Handler()).postDelayed(this::startVoiceRecognitionActivity, 1000);
             }
         }
@@ -137,7 +137,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             @Override
             public void onFinish() {
                 if (!speechDetected) {
-                    Toast.makeText(getBaseContext(), "time for response ran out SMS sent", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(getBaseContext(), "time for response ran out SMS sent", Toast.LENGTH_SHORT).show();
                     //finishActivity(VOICE_RECOGNITION_REQUEST_CODE);
                     sms();
                     //call sms function
@@ -159,55 +159,55 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
                 if (matches.contains("yes")) {
                     speechDetected = true;
-                    text.setText("User said yes!");
-                    lon.setText(String.valueOf(mCurrentLocation.getLongitude()));
-                    lat.setText(String.valueOf(mCurrentLocation.getLatitude()));
+                    //text.setText("User said yes!");
+                    //lon.setText(String.valueOf(mCurrentLocation.getLongitude()));
+                    //lat.setText(String.valueOf(mCurrentLocation.getLatitude()));
                     sms();
                     //call sms function send location
                 }
                 if (matches.contains("call for help")) {
                     speechDetected = true;
-                    text.setText("User said yes!");
-                    lon.setText(String.valueOf(mCurrentLocation.getLongitude()));
-                    lat.setText(String.valueOf(mCurrentLocation.getLatitude()));
+                    //text.setText("User said yes!");
+                    //lon.setText(String.valueOf(mCurrentLocation.getLongitude()));
+                    //lat.setText(String.valueOf(mCurrentLocation.getLatitude()));
                     sms();
                     //call sms function send location
                 }
                 if (matches.contains("help")) {
                     speechDetected = true;
-                    text.setText("User said yes!");
-                    lon.setText(String.valueOf(mCurrentLocation.getLongitude()));
-                    lat.setText(String.valueOf(mCurrentLocation.getLatitude()));
+                    //text.setText("User said yes!");
+                    //lon.setText(String.valueOf(mCurrentLocation.getLongitude()));
+                    //lat.setText(String.valueOf(mCurrentLocation.getLatitude()));
                     sms();
                     //call sms function send location
                 }
                 if (matches.contains("no")) {
                     fallDetected = false;
                     speechDetected = true;
-                    text.setText("User is okay!");
-                    lon.setText("-");
-                    lat.setText("-");
+                    //text.setText("User is okay!");
+                    //lon.setText("-");
+                    //lat.setText("-");
                 }
                 if (matches.contains("i'm all right")) {
                     fallDetected = false;
                     speechDetected = true;
-                    text.setText("User is okay!");
-                    lon.setText("-");
-                    lat.setText("-");
+                    //text.setText("User is okay!");
+                    //lon.setText("-");
+                    //lat.setText("-");
                 }
                 if (matches.contains("i'm okay")) {
                     fallDetected = false;
                     speechDetected = true;
-                    text.setText("User is okay!");
-                    lon.setText("-");
-                    lat.setText("-");
+                    //text.setText("User is okay!");
+                    //lon.setText("-");
+                    //lat.setText("-");
                 }
                 if (matches.contains("i'm fine")) {
                     fallDetected = false;
                     speechDetected = true;
-                    text.setText("User is okay!");
-                    lon.setText("-");
-                    lat.setText("-");
+                    //text.setText("User is okay!");
+                    //lon.setText("-");
+                    //lat.setText("-");
                 }
             }
         }
