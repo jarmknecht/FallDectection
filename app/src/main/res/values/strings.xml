@@ -2,5 +2,9 @@
     <string name="app_name">Fall Detection</string>
     <string name="title_location_permission">Request Location</string>
     <string name="text_location_permission">Fall Detection needs your location to work fully</string>
+    <string name="title_sms_permission">Request SMS Sending</string>
+    <string name="text_sms_permission">Fall Detection needs permission to send SMS texts to work fully</string>
+    <string name="title_permission">Request Location and SMS Sending</string>
+    <string name="permissions">Fall Detection needs permission to send SMS texts and your location to work fully</string>
     <string name="ok">OK</string>
 </resources>

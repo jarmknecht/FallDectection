@@ -67,18 +67,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         fallSound = MediaPlayer.create(this, R.raw.fall);
         fallSound.setVolume(10000, 10000);
         locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-        //TODO: update sms permissions to look like how location permissions work
+
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.SEND_SMS)
-                != PackageManager.PERMISSION_GRANTED) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.SEND_SMS)) {
-            } else {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.SEND_SMS},
-                        MY_PERMISSIONS_REQUEST_SEND_SMS);
-            }
+                == PackageManager.PERMISSION_GRANTED) {
+            Log.d("Message sms permission", "permitted");
         }
+        else {
+            checkSMSPermission();
+        }
+
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -122,11 +120,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 fallSound.start();
                 text.setText("FALL DETECTED!");
                 (new Handler()).postDelayed(this::startVoiceRecognitionActivity, 1000);
-                //startVoiceRecognitionActivity();
             }
-            /*else {
-                text.setText("Fall not Detected");
-            }*/
         }
     }
 
@@ -150,16 +144,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
             }
         }.start();
-        //Log.d("Starting for result", "ugh");
         startActivityForResult(intent, VOICE_RECOGNITION_REQUEST_CODE);
-        //Log.d("Finished call forresult", "work");
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         if (requestCode == VOICE_RECOGNITION_REQUEST_CODE) {
-           // Log.d("IN ON RESULT", "blah");
             if (resultCode == RESULT_OK) {
                 ArrayList<String> matches = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                 ListIterator<String> iter = matches.listIterator();
@@ -219,9 +210,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     lat.setText("-");
                 }
             }
-            /*if (resultCode != RESULT_OK) {
-                //Log.d("CANCELLED!!", "oops");
-            }*/
         }
     }
 
@@ -251,6 +239,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
+    private void checkSMSPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.SEND_SMS},
+                    MY_PERMISSIONS_REQUEST_SEND_SMS);
+        }
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[],
                                            int[] grantResults) {
@@ -268,9 +265,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     //permission denied
                     checkLocationPermissionWithMessage();
                 }
+                break;
             }
             case MY_PERMISSIONS_REQUEST_SEND_SMS: {
-                Log.d("permiss sms", "yo");
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS)
+                            == PackageManager.PERMISSION_GRANTED) {
+                        Log.d("Message sms permission", "permitted");
+                    }
+                }
+                else {
+                    //permission denied
+                    checkSMSPermissionWithMessage();
+                }
+                break;
             }
         }
     }
@@ -294,6 +303,28 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
         else {
             checkLocationPermissionWithMessage(); //denied again
+        }
+    }
+
+    private void checkSMSPermissionWithMessage() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                Manifest.permission.SEND_SMS)) {
+            new AlertDialog.Builder(this)
+                    .setTitle(R.string.title_sms_permission)
+                    .setMessage(R.string.text_sms_permission)
+                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int i) {
+                            ActivityCompat.requestPermissions(MainActivity.this,
+                                    new String[]{Manifest.permission.SEND_SMS},
+                                    MY_PERMISSIONS_REQUEST_SEND_SMS);
+                        }
+                    })
+                    .create()
+                    .show();
+        }
+        else {
+            checkSMSPermissionWithMessage(); //denied again
         }
     }
 
