@@ -7,4 +7,5 @@
     <string name="title_permission">Request Location and SMS Sending</string>
     <string name="permissions">Fall Detection needs permission to send SMS texts and your location to work fully</string>
     <string name="ok">OK</string>
+    <string name="title_activity_maps">Map Activity</string>
 </resources>

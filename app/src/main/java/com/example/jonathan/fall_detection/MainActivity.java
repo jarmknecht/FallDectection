@@ -25,9 +25,14 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.telephony.SmsManager;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethod;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -43,6 +48,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     //private TextView text;
     //private TextView lon;
     //private TextView lat;
+    private EditText editText1;
+    private EditText editText2;
+    private Button button;
     static int sensorValuesSize = 70;
     float accelValuesX[] = new float[sensorValuesSize];
     float accelValuesY[] = new float[sensorValuesSize];
@@ -80,11 +88,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         String contactNumber2 = sharedPreferences.getString("contact_number_2", "");
         Log.d("DEBUG", "1:" + contactNumber1 + " 2:" + contactNumber2);
 
-        EditText editText1 = (EditText) findViewById(R.id.editText1);
-        EditText editText2 = (EditText) findViewById(R.id.editText2);
+        editText1 = (EditText) findViewById(R.id.editText1);
+        editText2 = (EditText) findViewById(R.id.editText2);
         editText1.setText(contactNumber1);
         editText2.setText(contactNumber2);
-        Button button = (Button) findViewById(R.id.saveButton);
+        button = (Button) findViewById(R.id.saveButton);
+
+        editText1.addTextChangedListener(numbersTextWatcher);
+        editText2.addTextChangedListener(numbersTextWatcher);
+
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -120,6 +132,28 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             checkLocationPermission();
         }
     }
+
+    private TextWatcher numbersTextWatcher = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            String phonenum1 = editText1.getText().toString().trim(); //trim() gets rid of spaces
+            String phonenum2 = editText2.getText().toString().trim();
+            //if both have text in them then it will be true && true and set enabled will be true
+            button.setEnabled(!phonenum1.isEmpty() && !phonenum2.isEmpty());
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+
+        }
+    };
+
+
 //TODO: when phone drops senses the fall but when I fall onto love sac it doesn't change parameters once everything else is working
     @Override
     public void onSensorChanged(SensorEvent event) {
@@ -245,12 +279,30 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
         }
     }
-
+//TODO: make it send a map link instead of a link thats why maps actvity was added may or may not need
     public void sms() {
         double lat = mCurrentLocation.getLatitude();
         double lon = mCurrentLocation.getLongitude();
         String message = "Help I have fallen at the location \n " +
-                "http://maps.google.com/maps?saddr=" + lat + "," + lon;
+                "https://maps.google.com/maps?q=" + lat + "," + lon;
+        /*String message = "Help I have fallen at the location \n " +
+                "http://maps.googleapis.com/maps/api/staticmap?center=" +
+                lat + "," + lon + "&zoom=12&size=400x400&key=AIzaSyDSQE0n5ho4a_zYsp8GsJ09jDrTOXunDiI";
+        /*StringBuilder message = new StringBuilder();
+        //message.append("Help I have fallen at the location \n ");
+        message.append("https://maps.googleapis.com/maps/api/staticmap?center=");
+        message.append(lat);
+        message.append(",");
+        message.append(lon);
+        message.append("&zoom=12&size=400x400&key=AIzaSyDSQE0n5ho4a_zYsp8GsJ09jDrTOXunDiI");
+        String mess = message.toString();
+        System.out.print(mess);*/
+        /*Intent sendIntent = new Intent(Intent.ACTION_SEND);
+        sendIntent.putExtra("sms_body", "Help I have fallen at the location");
+        sendIntent.putExtra(Intent.EXTRA_STREAM, Uri.parse(message));
+        sendIntent.setType("image/png");
+        startActivity(sendIntent);*/
+
         String number = "8015550001";
         SmsManager smsManager = SmsManager.getDefault();
         StringBuffer smsBody = new StringBuffer();
