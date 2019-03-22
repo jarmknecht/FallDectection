@@ -8,4 +8,5 @@
     <string name="permissions">Fall Detection needs permission to send SMS texts and your location to work fully</string>
     <string name="ok">OK</string>
     <string name="title_activity_maps">Map Activity</string>
+    <string name="message">Please enter in two phone numbers of people you would want to have contacted in case you fall. The symbols \"(\", \")\", and \"-\" are not needed.</string>
 </resources>

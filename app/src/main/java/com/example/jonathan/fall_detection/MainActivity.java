@@ -94,8 +94,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         editText2.setText(contactNumber2);
         button = (Button) findViewById(R.id.saveButton);
 
+        editText1.setOnFocusChangeListener(focusLister);
+        editText2.setOnFocusChangeListener(focusLister);
+
         editText1.addTextChangedListener(numbersTextWatcher);
         editText2.addTextChangedListener(numbersTextWatcher);
+
 
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -133,6 +137,26 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
+    private View.OnFocusChangeListener focusLister = new View.OnFocusChangeListener() {
+        @Override
+        public void onFocusChange(View v, boolean hasFocus) {
+            if (editText1.hasFocus()) {
+                editText1.setCursorVisible(true);
+            }
+            else {
+                editText1.setCursorVisible(false);
+            }
+
+            if (editText2.hasFocus()) {
+                editText2.setCursorVisible(true);
+            }
+            else {
+                editText2.setCursorVisible(false);
+            }
+        }
+    };
+
+
     private TextWatcher numbersTextWatcher = new TextWatcher() {
         @Override
         public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -143,8 +167,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         public void onTextChanged(CharSequence s, int start, int before, int count) {
             String phonenum1 = editText1.getText().toString().trim(); //trim() gets rid of spaces
             String phonenum2 = editText2.getText().toString().trim();
-            //if both have text in them then it will be true && true and set enabled will be true
-            button.setEnabled(!phonenum1.isEmpty() && !phonenum2.isEmpty());
+            //if both have text 10 length long in them then it will be true && true and set enabled will be true
+            button.setEnabled((phonenum1.length() == 10) && (phonenum2.length() == 10));
         }
 
         @Override

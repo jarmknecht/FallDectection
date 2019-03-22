@@ -65,6 +65,8 @@
         <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto"
             xmlns:tools="http://schemas.android.com/tools"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             tools:context=".MainActivity">
@@ -75,11 +77,11 @@
                 android:layout_height="wrap_content"
                 android:paddingLeft="8dp"
                 android:paddingRight="8dp"
-                android:text="Please enter in two numbers of people you would want to have contacted in case you fall."
+                android:text="@string/message"
                 android:textAlignment="center"
                 android:textColor="@color/common_google_signin_btn_text_dark_default"
                 app:layout_constraintStart_toStartOf="parent" />
-            <!--TODO: unhide cursor once clicked on-->
+
             <EditText
                 android:id="@+id/editText1"
                 android:layout_width="wrap_content"
