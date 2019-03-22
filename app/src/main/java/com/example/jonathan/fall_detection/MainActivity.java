@@ -5,6 +5,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -26,9 +27,13 @@ import android.os.Bundle;
 import android.telephony.SmsManager;
 import android.util.Log;
 
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.ListIterator;
 
@@ -67,6 +72,34 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         fallSound = MediaPlayer.create(this, R.raw.fall);
         fallSound.setVolume(10000, 10000);
         locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+
+
+        SharedPreferences sharedPreferences = this.getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor sharedPrefEditor = sharedPreferences.edit();
+        String contactNumber1 = sharedPreferences.getString("contact_number_1", "");
+        String contactNumber2 = sharedPreferences.getString("contact_number_2", "");
+        Log.d("DEBUG", "1:" + contactNumber1 + " 2:" + contactNumber2);
+
+        EditText editText1 = (EditText) findViewById(R.id.editText1);
+        EditText editText2 = (EditText) findViewById(R.id.editText2);
+        editText1.setText(contactNumber1);
+        editText2.setText(contactNumber2);
+        Button button = (Button) findViewById(R.id.saveButton);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String a1 = editText1.getText().toString();
+                String a2 = editText2.getText().toString();
+                Log.d("DEBUG", "1:" + a1 + " 2:" + a2);
+                sharedPrefEditor.putString("contactNumber1", editText1.getText().toString());
+                sharedPrefEditor.putString("contactNumber2", editText2.getText().toString());
+                if (sharedPrefEditor.commit())
+                    Toast.makeText(MainActivity.this, "Contact numbers saved", Toast.LENGTH_LONG).show();
+                else
+                    Toast.makeText(MainActivity.this, "Unable to save contact numbers", Toast.LENGTH_LONG).show();
+            }
+        });
+
 
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.SEND_SMS)
