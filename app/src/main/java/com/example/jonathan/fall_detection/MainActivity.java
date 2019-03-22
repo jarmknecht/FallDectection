@@ -11,6 +11,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -64,6 +65,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public LocationManager locationManager;
     private static final int MY_PERMISSIONS_REQUEST_SEND_SMS= 50;
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
+    private String locationProvider;
+    private Criteria criteria;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +75,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         //text = (TextView) findViewById(R.id.Fall);
         //lon = (TextView) findViewById(R.id.lon);
         //lat = (TextView) findViewById(R.id.lat);
+        criteria = new Criteria();
+        criteria.setAccuracy(Criteria.ACCURACY_FINE);
+        criteria.setAltitudeRequired(false);
+        criteria.setBearingRequired(false);
+        criteria.setCostAllowed(true);
+        criteria.setPowerRequirement(Criteria.POWER_LOW);
         //Get the systems sensor
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         //get accel sensor and register it an check it every 2 ms at least
@@ -93,6 +102,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         editText1.setText(contactNumber1);
         editText2.setText(contactNumber2);
         button = (Button) findViewById(R.id.saveButton);
+        //TODO: Add error message if they try to click button before entering two numbers
 
         editText1.setOnFocusChangeListener(focusLister);
         editText2.setOnFocusChangeListener(focusLister);
@@ -104,8 +114,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String a1 = editText1.getText().toString();
-                String a2 = editText2.getText().toString();
+                String a1 = editText1.getText().toString().trim();
+                String a2 = editText2.getText().toString().trim();
                 Log.d("DEBUG", "1:" + a1 + " 2:" + a2);
                 sharedPrefEditor.putString("contactNumber1", editText1.getText().toString());
                 sharedPrefEditor.putString("contactNumber2", editText2.getText().toString());
@@ -129,8 +139,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 10, this);
-            mCurrentLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            locationProvider = locationManager.getBestProvider(criteria, true);
+            Log.d("LocProvider is ", locationProvider);
+            locationManager.requestLocationUpdates(locationProvider, 0, 10, this);
+            mCurrentLocation = locationManager.getLastKnownLocation(locationProvider);
         }
         else {
             checkLocationPermission();
@@ -366,8 +378,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                             == PackageManager.PERMISSION_GRANTED) {
-                        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 10, this);
-                        mCurrentLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                        locationProvider = locationManager.getBestProvider(criteria, true);
+                        Log.d("LocProvider is ", locationProvider);
+                        locationManager.requestLocationUpdates(locationProvider, 0, 10, this);
+                        mCurrentLocation = locationManager.getLastKnownLocation(locationProvider);
                     }
                 }
                 else {
