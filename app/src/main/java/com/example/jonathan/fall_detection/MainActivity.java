@@ -31,6 +31,7 @@ import android.text.TextWatcher;
 import android.util.Log;
 
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethod;
 import android.view.inputmethod.InputMethodManager;
@@ -52,6 +53,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private EditText editText1;
     private EditText editText2;
     private Button button;
+    private Button transButton;
     static int sensorValuesSize = 70;
     float accelValuesX[] = new float[sensorValuesSize];
     float accelValuesY[] = new float[sensorValuesSize];
@@ -102,7 +104,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         editText1.setText(contactNumber1);
         editText2.setText(contactNumber2);
         button = (Button) findViewById(R.id.saveButton);
-        //TODO: Add error message if they try to click button before entering two numbers
+        transButton = (Button) findViewById(R.id.transButton);
 
         editText1.setOnFocusChangeListener(focusLister);
         editText2.setOnFocusChangeListener(focusLister);
@@ -110,6 +112,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         editText1.addTextChangedListener(numbersTextWatcher);
         editText2.addTextChangedListener(numbersTextWatcher);
 
+        transButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(MainActivity.this, "Please enter two phone numbers", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -181,6 +189,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             String phonenum2 = editText2.getText().toString().trim();
             //if both have text 10 length long in them then it will be true && true and set enabled will be true
             button.setEnabled((phonenum1.length() == 10) && (phonenum2.length() == 10));
+            transButton.setEnabled(!(phonenum1.length() == 10) || !(phonenum2.length() == 10));
         }
 
         @Override
