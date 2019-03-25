@@ -73,6 +73,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private TextView textView;
     private CardView card2;
     private CardView cardView;
+    private Button back;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,6 +113,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         card2 = (CardView) findViewById(R.id.card2);
         button = (Button) findViewById(R.id.saveButton);
         transButton = (Button) findViewById(R.id.transButton);
+        back = (Button) findViewById(R.id.backButton);
 
         editText1.setOnFocusChangeListener(focusLister);
         editText2.setOnFocusChangeListener(focusLister);
@@ -142,8 +144,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 textView.setVisibility(TextView.GONE);
                 cardView.setVisibility(CardView.GONE);
                 card2.setVisibility(TextView.VISIBLE);
+                back.setVisibility(Button.VISIBLE);
                 button.setVisibility(Button.GONE);
 
+            }
+        });
+
+        back.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //Toast.makeText(MainActivity.this, "Back button pressed", Toast.LENGTH_LONG).show();
+                textView.setVisibility(TextView.VISIBLE);
+                cardView.setVisibility(CardView.VISIBLE);
+                card2.setVisibility(TextView.GONE);
+                back.setVisibility(Button.GONE);
+                button.setVisibility(Button.VISIBLE);
             }
         });
 
@@ -200,7 +215,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         public void onTextChanged(CharSequence s, int start, int before, int count) {
             String phonenum1 = editText1.getText().toString().trim(); //trim() gets rid of spaces
             String phonenum2 = editText2.getText().toString().trim();
-            Log.d ("DEBUG", "Strings are the same " + phonenum1.equals(phonenum2));
+            //Log.d ("DEBUG", "Strings are the same " + phonenum1.equals(phonenum2));
             //if both have text 10 length long in them then it will be true && true and set enabled will be true
             button.setEnabled((phonenum1.length() == 10) && (phonenum2.length() == 10) && !(phonenum1.equals(phonenum2)));
             transButton.setEnabled(!(phonenum1.length() == 10) || !(phonenum2.length() == 10) || (phonenum1.equals(phonenum2)));
@@ -361,7 +376,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         sendIntent.putExtra(Intent.EXTRA_STREAM, Uri.parse(message));
         sendIntent.setType("image/png");
         startActivity(sendIntent);*/
-
+//TODO: add all numbers to an array to go through and text them all
         String number = "8015550001";
         SmsManager smsManager = SmsManager.getDefault();
         StringBuffer smsBody = new StringBuffer();
