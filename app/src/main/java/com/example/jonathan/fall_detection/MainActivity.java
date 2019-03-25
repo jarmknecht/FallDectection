@@ -25,6 +25,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.CardView;
 import android.telephony.SmsManager;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -69,6 +70,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
     private String locationProvider;
     private Criteria criteria;
+    private TextView textView;
+    private CardView card2;
+    private CardView cardView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,10 +103,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         String contactNumber2 = sharedPreferences.getString("contact_number_2", "");
         Log.d("DEBUG", "1:" + contactNumber1 + " 2:" + contactNumber2);
 
+        cardView = (CardView) findViewById(R.id.card);
         editText1 = (EditText) findViewById(R.id.editText1);
         editText2 = (EditText) findViewById(R.id.editText2);
         editText1.setText(contactNumber1);
         editText2.setText(contactNumber2);
+        textView = (TextView) findViewById(R.id.textView);
+        card2 = (CardView) findViewById(R.id.card2);
         button = (Button) findViewById(R.id.saveButton);
         transButton = (Button) findViewById(R.id.transButton);
 
@@ -115,7 +122,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         transButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(MainActivity.this, "Please enter two phone numbers", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Please enter two different phone numbers", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -131,6 +138,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     Toast.makeText(MainActivity.this, "Contact numbers saved", Toast.LENGTH_LONG).show();
                 else
                     Toast.makeText(MainActivity.this, "Unable to save contact numbers", Toast.LENGTH_LONG).show();
+
+                textView.setVisibility(TextView.GONE);
+                cardView.setVisibility(CardView.GONE);
+                card2.setVisibility(TextView.VISIBLE);
+                button.setVisibility(Button.GONE);
+
             }
         });
 
@@ -187,9 +200,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         public void onTextChanged(CharSequence s, int start, int before, int count) {
             String phonenum1 = editText1.getText().toString().trim(); //trim() gets rid of spaces
             String phonenum2 = editText2.getText().toString().trim();
+            Log.d ("DEBUG", "Strings are the same " + phonenum1.equals(phonenum2));
             //if both have text 10 length long in them then it will be true && true and set enabled will be true
-            button.setEnabled((phonenum1.length() == 10) && (phonenum2.length() == 10));
-            transButton.setEnabled(!(phonenum1.length() == 10) || !(phonenum2.length() == 10));
+            button.setEnabled((phonenum1.length() == 10) && (phonenum2.length() == 10) && !(phonenum1.equals(phonenum2)));
+            transButton.setEnabled(!(phonenum1.length() == 10) || !(phonenum2.length() == 10) || (phonenum1.equals(phonenum2)));
         }
 
         @Override

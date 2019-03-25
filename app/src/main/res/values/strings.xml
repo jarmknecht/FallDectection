@@ -9,4 +9,6 @@
     <string name="ok">OK</string>
     <string name="title_activity_maps">Map Activity</string>
     <string name="message">Please enter in two phone numbers of people you would want to have contacted in case you fall. The symbols \"(\", \")\", and \"-\" are not needed.</string>
+    <string name="appstart">Thank you for choosing Fall Detection! The app will use the two numbers you provided as emergency contacts. It will also
+    add contacts who you communicate often with through phone calls or text messages to ensure your safety.</string>
 </resources>
