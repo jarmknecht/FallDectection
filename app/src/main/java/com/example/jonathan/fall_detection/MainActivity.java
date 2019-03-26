@@ -151,13 +151,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 Manifest.permission.READ_CONTACTS)
                 == PackageManager.PERMISSION_GRANTED) {
             Log.d("Read contacts", "permitted");
+            //Gets a mapping of contact numbers to number of times the number has been contacted
+            HashMap<String, Integer> contacts = getContactsMap();
         }
         else {
             checkContactsPermission();
         }
-
-        //Gets a mapping of contact numbers to number of times the number has been contacted
-        HashMap<String, Integer> contacts = getContactsMap();
 
         button.setOnClickListener(view -> {
             String a1 = editText1.getText().toString().trim();
@@ -507,10 +506,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                             == PackageManager.PERMISSION_GRANTED) {
                         Log.d("Call log permission", "permitted");
                     }
-                    else {
-                        checkContactsPermissionWithMessage();
-                    }
                 }
+                else {
+                    checkContactsPermissionWithMessage(); //permission denied
+                }
+                break;
             }
         }
     }
