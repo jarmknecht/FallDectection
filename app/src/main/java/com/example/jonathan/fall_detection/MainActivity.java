@@ -2,11 +2,12 @@
 package com.example.jonathan.fall_detection;
 
 import android.Manifest;
+import android.content.ContentResolver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -19,6 +20,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.provider.ContactsContract;
 import android.speech.RecognizerIntent;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -31,18 +33,14 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 
-import android.view.KeyEvent;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.inputmethod.InputMethod;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.ListIterator;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener, LocationListener {
@@ -68,6 +66,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public LocationManager locationManager;
     private static final int MY_PERMISSIONS_REQUEST_SEND_SMS= 50;
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
+    private static final int MY_PERMISSION_READ_CONTACTS = 33;
     private String locationProvider;
     private Criteria criteria;
     private TextView textView;
@@ -91,13 +90,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         //Get the systems sensor
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         //get accel sensor and register it an check it every 2 ms at least
-        sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-                SensorManager.SENSOR_DELAY_NORMAL);
+        if (sensorManager != null) {
+            sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+                    SensorManager.SENSOR_DELAY_NORMAL);
+        }
         fallSound = MediaPlayer.create(this, R.raw.fall);
         fallSound.setVolume(10000, 10000);
         locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
 
-
+        //TODO: maybe we should check permissions first, then analyze past call data to auto-fill two suggested contact numbers
         SharedPreferences sharedPreferences = this.getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor sharedPrefEditor = sharedPreferences.edit();
         String contactNumber1 = sharedPreferences.getString("contact_number_1", "");
@@ -121,47 +122,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         editText1.addTextChangedListener(numbersTextWatcher);
         editText2.addTextChangedListener(numbersTextWatcher);
 
-        transButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(MainActivity.this, "Please enter two different phone numbers", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String a1 = editText1.getText().toString().trim();
-                String a2 = editText2.getText().toString().trim();
-                Log.d("DEBUG", "1:" + a1 + " 2:" + a2);
-                sharedPrefEditor.putString("contactNumber1", editText1.getText().toString());
-                sharedPrefEditor.putString("contactNumber2", editText2.getText().toString());
-                if (sharedPrefEditor.commit())
-                    Toast.makeText(MainActivity.this, "Contact numbers saved", Toast.LENGTH_LONG).show();
-                else
-                    Toast.makeText(MainActivity.this, "Unable to save contact numbers", Toast.LENGTH_LONG).show();
-
-                textView.setVisibility(TextView.GONE);
-                cardView.setVisibility(CardView.GONE);
-                card2.setVisibility(TextView.VISIBLE);
-                back.setVisibility(Button.VISIBLE);
-                button.setVisibility(Button.GONE);
-
-            }
-        });
-
-        back.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //Toast.makeText(MainActivity.this, "Back button pressed", Toast.LENGTH_LONG).show();
-                textView.setVisibility(TextView.VISIBLE);
-                cardView.setVisibility(CardView.VISIBLE);
-                card2.setVisibility(TextView.GONE);
-                back.setVisibility(Button.GONE);
-                button.setVisibility(Button.VISIBLE);
-            }
-        });
-
+        transButton.setOnClickListener(v ->
+                Toast.makeText(MainActivity.this,
+                        "Please enter two different phone numbers", Toast.LENGTH_SHORT).show());
 
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.SEND_SMS)
@@ -183,6 +146,91 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         else {
             checkLocationPermission();
         }
+
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.READ_CONTACTS)
+                == PackageManager.PERMISSION_GRANTED) {
+            Log.d("Read contacts", "permitted");
+        }
+        else {
+            checkContactsPermission();
+        }
+
+        //Gets a mapping of contact numbers to number of times the number has been contacted
+        HashMap<String, Integer> contacts = getContactsMap();
+
+        button.setOnClickListener(view -> {
+            String a1 = editText1.getText().toString().trim();
+            String a2 = editText2.getText().toString().trim();
+            Log.d("DEBUG", "1:" + a1 + " 2:" + a2);
+            sharedPrefEditor.putString("contactNumber1", editText1.getText().toString());
+            sharedPrefEditor.putString("contactNumber2", editText2.getText().toString());
+            if (sharedPrefEditor.commit())
+                Toast.makeText(MainActivity.this,
+                        "Contact numbers saved", Toast.LENGTH_LONG).show();
+            else
+                Toast.makeText(MainActivity.this,
+                        "Unable to save contact numbers", Toast.LENGTH_LONG).show();
+
+            textView.setVisibility(TextView.GONE);
+            cardView.setVisibility(CardView.GONE);
+            card2.setVisibility(TextView.VISIBLE);
+            back.setVisibility(Button.VISIBLE);
+            button.setVisibility(Button.GONE);
+
+        });
+
+        back.setOnClickListener(v -> {
+            //Toast.makeText(MainActivity.this, "Back button pressed", Toast.LENGTH_LONG).show();
+            textView.setVisibility(TextView.VISIBLE);
+            cardView.setVisibility(CardView.VISIBLE);
+            card2.setVisibility(TextView.GONE);
+            back.setVisibility(Button.GONE);
+            button.setVisibility(Button.VISIBLE);
+        });
+    }
+
+    private HashMap<String , Integer> getContactsMap() {
+        HashMap<String, Integer> contacts = new HashMap<>();
+        ContentResolver cr = getContentResolver();
+        Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI,
+                null, null, null, null);
+
+        if ((cur != null ? cur.getCount() : 0) > 0) {
+            while (cur.moveToNext()) {
+                String id = cur.getString(
+                        cur.getColumnIndex(ContactsContract.Contacts._ID));
+                String name = cur.getString(cur.getColumnIndex(
+                        ContactsContract.Contacts.DISPLAY_NAME));
+                Integer timesContacted = cur.getInt(
+                        cur.getColumnIndex(ContactsContract.Contacts.TIMES_CONTACTED));
+
+
+                if (cur.getInt(cur.getColumnIndex(
+                        ContactsContract.Contacts.HAS_PHONE_NUMBER)) > 0) {
+                    Cursor pCur = cr.query(
+                            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                            null,
+                            ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
+                            new String[]{id}, null);
+                    while (pCur != null && pCur.moveToNext()) {
+                        String phoneNo = pCur.getString(pCur.getColumnIndex(
+                                ContactsContract.CommonDataKinds.Phone.NUMBER));
+                        contacts.put(phoneNo, timesContacted);
+                        Log.d("CONTACTS", "Name: " + name);
+                        Log.d("CONTACTS", "Phone Number: " + phoneNo);
+                        Log.d("CONTACTS", "Times Contacted: " + timesContacted);
+                    }
+                    if (pCur != null) {
+                        pCur.close();
+                    }
+                }
+            }
+        }
+        if(cur!=null){
+            cur.close();
+        }
+        return contacts;
     }
 
     private View.OnFocusChangeListener focusLister = new View.OnFocusChangeListener() {
@@ -381,7 +429,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         SmsManager smsManager = SmsManager.getDefault();
         StringBuffer smsBody = new StringBuffer();
         smsBody.append(Uri.parse(message));
-        smsManager.getDefault().sendTextMessage(number, null, smsBody.toString(), null, null);
+        smsManager.sendTextMessage(number, null, smsBody.toString(), null, null);
     }
 
     @Override
@@ -404,6 +452,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.SEND_SMS},
                     MY_PERMISSIONS_REQUEST_SEND_SMS);
+        }
+    }
+
+    private void checkContactsPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_CONTACTS},
+                    MY_PERMISSION_READ_CONTACTS);
         }
     }
 
@@ -442,6 +499,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
                 break;
             }
+            case MY_PERMISSION_READ_CONTACTS:
+            {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)
+                            == PackageManager.PERMISSION_GRANTED) {
+                        Log.d("Call log permission", "permitted");
+                    }
+                    else {
+                        checkContactsPermissionWithMessage();
+                    }
+                }
+            }
         }
     }
 
@@ -451,14 +521,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             new AlertDialog.Builder(this)
                     .setTitle(R.string.title_location_permission)
                     .setMessage(R.string.text_location_permission)
-                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int i) {
+                    .setPositiveButton(R.string.ok, (dialog, i) ->
                             ActivityCompat.requestPermissions(MainActivity.this,
-                                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                                    MY_PERMISSIONS_REQUEST_LOCATION);
-                        }
-                    })
+                            new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                            MY_PERMISSIONS_REQUEST_LOCATION))
                     .create()
                     .show();
         }
@@ -473,14 +539,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             new AlertDialog.Builder(this)
                     .setTitle(R.string.title_sms_permission)
                     .setMessage(R.string.text_sms_permission)
-                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int i) {
+                    .setPositiveButton(R.string.ok, (dialog, i) ->
                             ActivityCompat.requestPermissions(MainActivity.this,
-                                    new String[]{Manifest.permission.SEND_SMS},
-                                    MY_PERMISSIONS_REQUEST_SEND_SMS);
-                        }
-                    })
+                            new String[]{Manifest.permission.SEND_SMS},
+                            MY_PERMISSIONS_REQUEST_SEND_SMS))
                     .create()
                     .show();
         }
@@ -488,6 +550,25 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             checkSMSPermissionWithMessage(); //denied again
         }
     }
+
+    private void checkContactsPermissionWithMessage() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                Manifest.permission.READ_CONTACTS)) {
+            new AlertDialog.Builder(this)
+                    .setTitle(R.string.title_contacts_permission)
+                    .setMessage(R.string.text_contacts_permission)
+                    .setPositiveButton(R.string.ok, (dialog, i) ->
+                            ActivityCompat.requestPermissions(MainActivity.this,
+                            new String[]{Manifest.permission.READ_CONTACTS},
+                            MY_PERMISSION_READ_CONTACTS))
+                    .create()
+                    .show();
+        }
+        else {
+            checkContactsPermissionWithMessage(); //denied again
+        }
+    }
+
 
     @Override
     public void onLocationChanged(Location location) {

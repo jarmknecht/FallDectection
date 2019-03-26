@@ -4,11 +4,16 @@
     <string name="text_location_permission">Fall Detection needs your location to work fully</string>
     <string name="title_sms_permission">Request SMS Sending</string>
     <string name="text_sms_permission">Fall Detection needs permission to send SMS texts to work fully</string>
-    <string name="title_permission">Request Location and SMS Sending</string>
+    <string name="title_permission">Request Location, SMS Sending, and Call Log</string>
     <string name="permissions">Fall Detection needs permission to send SMS texts and your location to work fully</string>
+    <string name="title_contacts_permission">Request Contacts Access</string>
+    <string name="text_contacts_permission">Fall Detection needs permission to access contacts to work fully</string>
     <string name="ok">OK</string>
     <string name="title_activity_maps">Map Activity</string>
     <string name="message">Please enter in two phone numbers of people you would want to have contacted in case you fall. The symbols \"(\", \")\", and \"-\" are not needed.</string>
     <string name="appstart">Thank you for choosing Fall Detection! The app will use the two numbers you provided as emergency contacts. It will also
     add contacts who you communicate often with through phone calls or text messages to ensure your safety.</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
