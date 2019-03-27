@@ -39,6 +39,10 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.ListIterator;
@@ -73,6 +77,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private CardView card2;
     private CardView cardView;
     private Button back;
+    private JSONArray contacts;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,6 +102,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         fallSound = MediaPlayer.create(this, R.raw.fall);
         fallSound.setVolume(10000, 10000);
         locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+        ContactsController contactsController = new ContactsController(this);
 
         //TODO: maybe we should check permissions first, then analyze past call data to auto-fill two suggested contact numbers
         SharedPreferences sharedPreferences = this.getPreferences(Context.MODE_PRIVATE);
@@ -152,12 +158,20 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 == PackageManager.PERMISSION_GRANTED) {
             Log.d("Read contacts", "permitted");
             //Gets a mapping of contact numbers to number of times the number has been contacted
-            HashMap<String, Integer> contacts = getContactsMap();
         }
         else {
             checkContactsPermission();
         }
 
+        if (contactsPermissionGranted()) {
+            contacts = contactsController.getCurrentContacts();
+        }
+        try {
+            editText1.setText(contacts.length() > 0 ? contacts.getJSONObject(0).getString("phone_number") : "");
+            editText2.setText(contacts.length() > 1 ? contacts.getJSONObject(1).getString("phone_number") : "");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         button.setOnClickListener(view -> {
             String a1 = editText1.getText().toString().trim();
             String a2 = editText2.getText().toString().trim();
@@ -187,49 +201,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             back.setVisibility(Button.GONE);
             button.setVisibility(Button.VISIBLE);
         });
-    }
-
-    private HashMap<String , Integer> getContactsMap() {
-        HashMap<String, Integer> contacts = new HashMap<>();
-        ContentResolver cr = getContentResolver();
-        Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI,
-                null, null, null, null);
-
-        if ((cur != null ? cur.getCount() : 0) > 0) {
-            while (cur.moveToNext()) {
-                String id = cur.getString(
-                        cur.getColumnIndex(ContactsContract.Contacts._ID));
-                String name = cur.getString(cur.getColumnIndex(
-                        ContactsContract.Contacts.DISPLAY_NAME));
-                Integer timesContacted = cur.getInt(
-                        cur.getColumnIndex(ContactsContract.Contacts.TIMES_CONTACTED));
-
-
-                if (cur.getInt(cur.getColumnIndex(
-                        ContactsContract.Contacts.HAS_PHONE_NUMBER)) > 0) {
-                    Cursor pCur = cr.query(
-                            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                            null,
-                            ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
-                            new String[]{id}, null);
-                    while (pCur != null && pCur.moveToNext()) {
-                        String phoneNo = pCur.getString(pCur.getColumnIndex(
-                                ContactsContract.CommonDataKinds.Phone.NUMBER));
-                        contacts.put(phoneNo, timesContacted);
-                        Log.d("CONTACTS", "Name: " + name);
-                        Log.d("CONTACTS", "Phone Number: " + phoneNo);
-                        Log.d("CONTACTS", "Times Contacted: " + timesContacted);
-                    }
-                    if (pCur != null) {
-                        pCur.close();
-                    }
-                }
-            }
-        }
-        if(cur!=null){
-            cur.close();
-        }
-        return contacts;
     }
 
     private View.OnFocusChangeListener focusLister = new View.OnFocusChangeListener() {
@@ -461,6 +432,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     new String[]{Manifest.permission.READ_CONTACTS},
                     MY_PERMISSION_READ_CONTACTS);
         }
+    }
+
+    private boolean contactsPermissionGranted() {
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
     }
 
     @Override
