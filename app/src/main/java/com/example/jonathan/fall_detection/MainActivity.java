@@ -79,6 +79,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Button back;
     private JSONArray contacts;
     private boolean freefall;
+    private ContactsController contactsController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,7 +104,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         fallSound = MediaPlayer.create(this, R.raw.fall);
         fallSound.setVolume(10000, 10000);
         locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-        ContactsController contactsController = new ContactsController(this);
+        contactsController = new ContactsController(this);
 
         //TODO: maybe we should check permissions first, then analyze past call data to auto-fill two suggested contact numbers
         SharedPreferences sharedPreferences = this.getPreferences(Context.MODE_PRIVATE);
@@ -159,20 +160,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 == PackageManager.PERMISSION_GRANTED) {
             Log.d("Read contacts", "permitted");
             //Gets a mapping of contact numbers to number of times the number has been contacted
+            contacts = contactsController.getCurrentContacts();
+            try {
+                editText1.setText(contacts.length() > 0 ? contacts.getJSONObject(0).getString("phone_number") : "");
+                editText2.setText(contacts.length() > 1 ? contacts.getJSONObject(1).getString("phone_number") : "");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
         else {
             checkContactsPermission();
         }
 
-        if (contactsPermissionGranted()) {
-            contacts = contactsController.getCurrentContacts();
-        }
-        try {
-            editText1.setText(contacts.length() > 0 ? contacts.getJSONObject(0).getString("phone_number") : "");
-            editText2.setText(contacts.length() > 1 ? contacts.getJSONObject(1).getString("phone_number") : "");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
         button.setOnClickListener(view -> {
             String a1 = editText1.getText().toString().trim();
             String a2 = editText2.getText().toString().trim();
@@ -447,10 +446,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
-    private boolean contactsPermissionGranted() {
-        return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED;
-    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[],
@@ -494,6 +489,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)
                             == PackageManager.PERMISSION_GRANTED) {
                         Log.d("Call log permission", "permitted");
+                        contacts = contactsController.getCurrentContacts();
+                        try {
+                            editText1.setText(contacts.length() > 0 ? contacts.getJSONObject(0).getString("phone_number") : "");
+                            editText2.setText(contacts.length() > 1 ? contacts.getJSONObject(1).getString("phone_number") : "");
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
                 else {
