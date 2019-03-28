@@ -383,7 +383,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     SensorManager.SENSOR_DELAY_NORMAL); //spin up new listener for a new fall
         }
     }
-//TODO: make it send a map link instead of a link thats why maps actvity was added may or may not need
+//TODO: make it send a map link instead of a link thats why maps actvity was added may or may not need looks like need to us MMS which uses data what if person doesn't have data
     public void sms() {
         double lat = mCurrentLocation.getLatitude();
         double lon = mCurrentLocation.getLongitude();
