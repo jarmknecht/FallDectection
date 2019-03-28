@@ -78,6 +78,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private CardView cardView;
     private Button back;
     private JSONArray contacts;
+    private boolean freefall;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -250,7 +251,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     public void onSensorChanged(SensorEvent event) {
         Sensor _sensor = event.sensor;
-        fallDetected = false;
         double rootSquare = 0.0;
         if (_sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             index++;
@@ -260,6 +260,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 sensorManager.unregisterListener(this);
                 sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
                         SensorManager.SENSOR_DELAY_NORMAL);
+                fallDetected = false;
+                freefall = false;
             }
             //get acceleration minus GX on the x-axis
             accelValuesX[index] = event.values[0];
@@ -271,11 +273,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             rootSquare = Math.sqrt(Math.pow(accelValuesX[index], 2) + Math.pow(accelValuesY[index], 2) +
                     Math.pow(accelValuesZ[index], 2));
 
-            if (rootSquare < 2.0) {
+            //Log.d("DEBUG", "root square " + rootSquare);
+            if (rootSquare < 1.5) { //person free falling
                 //Toast.makeText(this, "Fall Detected", Toast.LENGTH_LONG).show();
+                freefall = true;
+                //fallDetected = true;
+            }
+            if (freefall && rootSquare > 3.0) { //person hit the ground
+                freefall = false;
                 fallDetected = true;
             }
             if (fallDetected) {
+                fallDetected = false;
                 fallSound.start();
                 //text.setText("FALL DETECTED!");
                 (new Handler()).postDelayed(this::startVoiceRecognitionActivity, 1000);
