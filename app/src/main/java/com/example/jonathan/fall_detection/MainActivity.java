@@ -89,7 +89,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         //lon = (TextView) findViewById(R.id.lon);
         //lat = (TextView) findViewById(R.id.lat);
         criteria = new Criteria();
-        criteria.setAccuracy(Criteria.ACCURACY_FINE);
+        criteria.setAccuracy(Criteria.ACCURACY_COARSE); //changed to network since that uses gps and network to get location plus plain gps didn't work at BYU
         criteria.setAltitudeRequired(false);
         criteria.setBearingRequired(false);
         criteria.setCostAllowed(true);
