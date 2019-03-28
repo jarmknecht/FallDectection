@@ -102,7 +102,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     SensorManager.SENSOR_DELAY_NORMAL);
         }
         fallSound = MediaPlayer.create(this, R.raw.fall);
-        fallSound.setVolume(10000, 10000);
+        //todo: set volume higher
+        fallSound.setVolume(1.0f, 1.0f);
         locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
         contactsController = new ContactsController(this);
 
