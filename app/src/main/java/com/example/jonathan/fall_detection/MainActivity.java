@@ -231,12 +231,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
-            String phonenum1 = editText1.getText().toString().trim(); //trim() gets rid of spaces
-            String phonenum2 = editText2.getText().toString().trim();
+            String phonenum1 = editText1.getText().toString();
+            String phonenum2 = editText2.getText().toString();
             //Log.d ("DEBUG", "Strings are the same " + phonenum1.equals(phonenum2));
-            //if both have text 10 length long in them then it will be true && true and set enabled will be true
-            button.setEnabled((phonenum1.length() == 10) && (phonenum2.length() == 10) && !(phonenum1.equals(phonenum2)));
-            transButton.setEnabled(!(phonenum1.length() == 10) || !(phonenum2.length() == 10) || (phonenum1.equals(phonenum2)));
+            //if both have text 14 length long in them then it will be true && true and set enabled will be true
+            button.setEnabled((phonenum1.length() == 14) && (phonenum2.length() == 14) && !(phonenum1.equals(phonenum2)));
+            transButton.setEnabled(!(phonenum1.length() == 14) || !(phonenum2.length() == 14) || (phonenum1.equals(phonenum2)));
         }
 
         @Override
@@ -407,11 +407,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         sendIntent.setType("image/png");
         startActivity(sendIntent);*/
 //TODO: add all numbers to an array to go through and text them all
-        String number = "8015550001";
+        String number1 = editText1.getText().toString();
+        String number2 = editText2.getText().toString();
         SmsManager smsManager = SmsManager.getDefault();
         StringBuffer smsBody = new StringBuffer();
         smsBody.append(Uri.parse(message));
-        smsManager.sendTextMessage(number, null, smsBody.toString(), null, null);
+        smsManager.sendTextMessage(number1, null, smsBody.toString(), null, null);
+        smsManager.sendTextMessage(number2, null, smsBody.toString(), null, null);
     }
 
     @Override
