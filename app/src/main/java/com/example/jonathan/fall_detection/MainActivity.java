@@ -257,9 +257,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             //call protects against buffer overflow
             if (index >= sensorValuesSize - 1) {
                 index = 0; //wrap index back around
-                sensorManager.unregisterListener(this);
-                sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-                        SensorManager.SENSOR_DELAY_NORMAL);
+                //sensorManager.unregisterListener(this);
+                //sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+                //        SensorManager.SENSOR_DELAY_NORMAL);
                 fallDetected = false;
                 freefall = false;
             }
@@ -279,13 +279,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 freefall = true;
                 //fallDetected = true;
             }
-            if (freefall && rootSquare > 3.0) { //person hit the ground
+            if (freefall && rootSquare > 3.0 && !fallDetected) { //person hit the ground
                 freefall = false;
                 fallDetected = true;
             }
             if (fallDetected) {
                 fallDetected = false;
                 fallSound.start();
+                sensorManager.unregisterListener(this);
                 //text.setText("FALL DETECTED!");
                 (new Handler()).postDelayed(this::startVoiceRecognitionActivity, 1000);
             }
@@ -310,6 +311,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     sms();
                     //call sms function
                 }
+                speechDetected = false;
             }
         }.start();
         startActivityForResult(intent, VOICE_RECOGNITION_REQUEST_CODE);
@@ -378,6 +380,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     //lat.setText("-");
                 }
             }
+            sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+                    SensorManager.SENSOR_DELAY_NORMAL); //spin up new listener for a new fall
         }
     }
 //TODO: make it send a map link instead of a link thats why maps actvity was added may or may not need
