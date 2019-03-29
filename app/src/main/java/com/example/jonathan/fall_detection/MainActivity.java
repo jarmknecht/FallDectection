@@ -255,7 +255,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     };
 
 
-//TODO: when phone drops senses the fall but when I fall onto love sac it doesn't change parameters once everything else is working
     @Override
     public void onSensorChanged(SensorEvent event) {
         Sensor _sensor = event.sensor;
@@ -358,29 +357,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     SensorManager.SENSOR_DELAY_NORMAL); //spin up new listener for a new fall
         }
     }
-//TODO: make it send a map link instead of a link thats why maps actvity was added may or may not need looks like need to us MMS which uses data what if person doesn't have data
+
     public void sms() {
         double lat = mCurrentLocation.getLatitude();
         double lon = mCurrentLocation.getLongitude();
         String message = "Help I have fallen at the location \n " +
                 "https://maps.google.com/maps?q=" + lat + "," + lon;
-        /*String message = "Help I have fallen at the location \n " +
-                "http://maps.googleapis.com/maps/api/staticmap?center=" +
-                lat + "," + lon + "&zoom=12&size=400x400&key=AIzaSyDSQE0n5ho4a_zYsp8GsJ09jDrTOXunDiI";
-        /*StringBuilder message = new StringBuilder();
-        //message.append("Help I have fallen at the location \n ");
-        message.append("https://maps.googleapis.com/maps/api/staticmap?center=");
-        message.append(lat);
-        message.append(",");
-        message.append(lon);
-        message.append("&zoom=12&size=400x400&key=AIzaSyDSQE0n5ho4a_zYsp8GsJ09jDrTOXunDiI");
-        String mess = message.toString();
-        System.out.print(mess);*/
-        /*Intent sendIntent = new Intent(Intent.ACTION_SEND);
-        sendIntent.putExtra("sms_body", "Help I have fallen at the location");
-        sendIntent.putExtra(Intent.EXTRA_STREAM, Uri.parse(message));
-        sendIntent.setType("image/png");
-        startActivity(sendIntent);*/
 //TODO: add all numbers to an array to go through and text them all
         String number1 = editText1.getText().toString();
         String number2 = editText2.getText().toString();
