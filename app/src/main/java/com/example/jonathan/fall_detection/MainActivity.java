@@ -2,12 +2,11 @@
 package com.example.jonathan.fall_detection;
 
 import android.Manifest;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
+import android.content.res.AssetFileDescriptor;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -16,11 +15,11 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.CountDownTimer;
 import android.os.Handler;
-import android.provider.ContactsContract;
 import android.speech.RecognizerIntent;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -42,17 +41,13 @@ import android.widget.Toast;
 import org.json.JSONArray;
 import org.json.JSONException;
 
-import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.ListIterator;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener, LocationListener {
 
     private SensorManager sensorManager;
-    //private TextView text;
-    //private TextView lon;
-    //private TextView lat;
     private EditText editText1;
     private EditText editText2;
     private Button button;
@@ -85,11 +80,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //text = (TextView) findViewById(R.id.Fall);
-        //lon = (TextView) findViewById(R.id.lon);
-        //lat = (TextView) findViewById(R.id.lat);
         criteria = new Criteria();
-        criteria.setAccuracy(Criteria.ACCURACY_COARSE); //changed to network since that uses gps and network to get location plus plain gps didn't work at BYU
+        criteria.setAccuracy(Criteria.ACCURACY_COARSE);
+        //changed to network since that uses gps and network to get location plus plain gps didn't work at BYU
         criteria.setAltitudeRequired(false);
         criteria.setBearingRequired(false);
         criteria.setCostAllowed(true);
@@ -101,9 +94,29 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
                     SensorManager.SENSOR_DELAY_NORMAL);
         }
-        fallSound = MediaPlayer.create(this, R.raw.fall);
-        //todo: set volume higher
-        fallSound.setVolume(1.0f, 1.0f);
+        AudioManager audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
+        int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM);
+        audioManager.setStreamVolume(AudioManager.STREAM_ALARM, maxVolume, 0);
+        fallSound = new MediaPlayer();
+        fallSound.setAudioStreamType(AudioManager.STREAM_ALARM);
+        AssetFileDescriptor afd = getBaseContext().getResources().openRawResourceFd(R.raw.fall);
+        if (afd != null) {
+            try {
+                fallSound.setDataSource(afd.getFileDescriptor(),afd.getStartOffset(), afd.getLength());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                afd.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        try {
+            fallSound.prepare();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
         contactsController = new ContactsController(this);
 
@@ -138,7 +151,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.SEND_SMS)
                 == PackageManager.PERMISSION_GRANTED) {
-            Log.d("Message sms permission", "permitted");
         }
         else {
             checkSMSPermission();
@@ -148,7 +160,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             locationProvider = locationManager.getBestProvider(criteria, true);
-            Log.d("LocProvider is ", locationProvider);
             locationManager.requestLocationUpdates(locationProvider, 0, 10, this);
             mCurrentLocation = locationManager.getLastKnownLocation(locationProvider);
         }
@@ -159,7 +170,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.READ_CONTACTS)
                 == PackageManager.PERMISSION_GRANTED) {
-            Log.d("Read contacts", "permitted");
             //Gets a mapping of contact numbers to number of times the number has been contacted
             contacts = contactsController.getCurrentContacts();
             try {
@@ -195,7 +205,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         });
 
         back.setOnClickListener(v -> {
-            //Toast.makeText(MainActivity.this, "Back button pressed", Toast.LENGTH_LONG).show();
             textView.setVisibility(TextView.VISIBLE);
             cardView.setVisibility(CardView.VISIBLE);
             card2.setVisibility(TextView.GONE);
@@ -234,7 +243,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         public void onTextChanged(CharSequence s, int start, int before, int count) {
             String phonenum1 = editText1.getText().toString();
             String phonenum2 = editText2.getText().toString();
-            //Log.d ("DEBUG", "Strings are the same " + phonenum1.equals(phonenum2));
             //if both have text 14 length long in them then it will be true && true and set enabled will be true
             button.setEnabled((phonenum1.length() == 14) && (phonenum2.length() == 14) && !(phonenum1.equals(phonenum2)));
             transButton.setEnabled(!(phonenum1.length() == 14) || !(phonenum2.length() == 14) || (phonenum1.equals(phonenum2)));
@@ -257,9 +265,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             //call protects against buffer overflow
             if (index >= sensorValuesSize - 1) {
                 index = 0; //wrap index back around
-                //sensorManager.unregisterListener(this);
-                //sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-                //        SensorManager.SENSOR_DELAY_NORMAL);
                 fallDetected = false;
                 freefall = false;
             }
@@ -273,11 +278,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             rootSquare = Math.sqrt(Math.pow(accelValuesX[index], 2) + Math.pow(accelValuesY[index], 2) +
                     Math.pow(accelValuesZ[index], 2));
 
-            //Log.d("DEBUG", "root square " + rootSquare);
             if (rootSquare < 1.5) { //person free falling
-                //Toast.makeText(this, "Fall Detected", Toast.LENGTH_LONG).show();
                 freefall = true;
-                //fallDetected = true;
             }
             if (freefall && rootSquare > 3.0 && !fallDetected) { //person hit the ground
                 freefall = false;
@@ -287,7 +289,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 fallDetected = false;
                 fallSound.start();
                 sensorManager.unregisterListener(this);
-                //text.setText("FALL DETECTED!");
                 (new Handler()).postDelayed(this::startVoiceRecognitionActivity, 1000);
             }
         }
@@ -306,10 +307,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             @Override
             public void onFinish() {
                 if (!speechDetected) {
-                    //Toast.makeText(getBaseContext(), "time for response ran out SMS sent", Toast.LENGTH_SHORT).show();
-                    //finishActivity(VOICE_RECOGNITION_REQUEST_CODE);
                     sms();
-                    //call sms function
                 }
                 speechDetected = false;
             }
@@ -329,55 +327,31 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
                 if (matches.contains("yes")) {
                     speechDetected = true;
-                    //text.setText("User said yes!");
-                    //lon.setText(String.valueOf(mCurrentLocation.getLongitude()));
-                    //lat.setText(String.valueOf(mCurrentLocation.getLatitude()));
                     sms();
-                    //call sms function send location
                 }
                 if (matches.contains("call for help")) {
                     speechDetected = true;
-                    //text.setText("User said yes!");
-                    //lon.setText(String.valueOf(mCurrentLocation.getLongitude()));
-                    //lat.setText(String.valueOf(mCurrentLocation.getLatitude()));
                     sms();
-                    //call sms function send location
                 }
                 if (matches.contains("help")) {
                     speechDetected = true;
-                    //text.setText("User said yes!");
-                    //lon.setText(String.valueOf(mCurrentLocation.getLongitude()));
-                    //lat.setText(String.valueOf(mCurrentLocation.getLatitude()));
                     sms();
-                    //call sms function send location
                 }
                 if (matches.contains("no")) {
                     fallDetected = false;
                     speechDetected = true;
-                    //text.setText("User is okay!");
-                    //lon.setText("-");
-                    //lat.setText("-");
                 }
                 if (matches.contains("i'm all right")) {
                     fallDetected = false;
                     speechDetected = true;
-                    //text.setText("User is okay!");
-                    //lon.setText("-");
-                    //lat.setText("-");
                 }
                 if (matches.contains("i'm okay")) {
                     fallDetected = false;
                     speechDetected = true;
-                    //text.setText("User is okay!");
-                    //lon.setText("-");
-                    //lat.setText("-");
                 }
                 if (matches.contains("i'm fine")) {
                     fallDetected = false;
                     speechDetected = true;
-                    //text.setText("User is okay!");
-                    //lon.setText("-");
-                    //lat.setText("-");
                 }
             }
             sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
@@ -460,7 +434,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                             == PackageManager.PERMISSION_GRANTED) {
                         locationProvider = locationManager.getBestProvider(criteria, true);
-                        Log.d("LocProvider is ", locationProvider);
                         locationManager.requestLocationUpdates(locationProvider, 0, 10, this);
                         mCurrentLocation = locationManager.getLastKnownLocation(locationProvider);
                     }
@@ -476,7 +449,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS)
                             == PackageManager.PERMISSION_GRANTED) {
-                        Log.d("Message sms permission", "permitted");
                     }
                 }
                 else {
@@ -491,7 +463,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)
                             == PackageManager.PERMISSION_GRANTED) {
-                        Log.d("Call log permission", "permitted");
                         contacts = contactsController.getCurrentContacts();
                         try {
                             editText1.setText(contacts.length() > 0 ? contacts.getJSONObject(0).getString("phone_number") : "");
