@@ -18,23 +18,23 @@ import android.location.LocationManager;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.speech.RecognizerIntent;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.CardView;
+import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -43,13 +43,18 @@ import org.json.JSONException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.ListIterator;
+
+import br.com.sapereaude.maskedEditText.MaskedEditText;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener, LocationListener {
 
     private SensorManager sensorManager;
-    private EditText editText1;
-    private EditText editText2;
+    private MaskedEditText editText1;
+    private MaskedEditText editText2;
+    private TextView contactOneTextView;
+    private TextView contactTwoTextView;
     private Button button;
     private Button transButton;
     static int sensorValuesSize = 70;
@@ -73,6 +78,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private CardView cardView;
     private Button back;
     private JSONArray contacts;
+    private HashMap<String, String> contactsMap;
     private boolean freefall;
     private ContactsController contactsController;
 
@@ -123,15 +129,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         //TODO: maybe we should check permissions first, then analyze past call data to auto-fill two suggested contact numbers
         SharedPreferences sharedPreferences = this.getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor sharedPrefEditor = sharedPreferences.edit();
-        String contactNumber1 = sharedPreferences.getString("contact_number_1", "");
-        String contactNumber2 = sharedPreferences.getString("contact_number_2", "");
-        Log.d("DEBUG", "1:" + contactNumber1 + " 2:" + contactNumber2);
 
         cardView = (CardView) findViewById(R.id.card);
-        editText1 = (EditText) findViewById(R.id.editText1);
-        editText2 = (EditText) findViewById(R.id.editText2);
-        editText1.setText(contactNumber1);
-        editText2.setText(contactNumber2);
+        editText1 = (MaskedEditText) findViewById(R.id.editText1);
+        editText2 = (MaskedEditText) findViewById(R.id.editText2);
+        contactOneTextView = (TextView) findViewById(R.id.contactOne);
+        contactTwoTextView = (TextView) findViewById(R.id.contactTwo);
         textView = (TextView) findViewById(R.id.textView);
         card2 = (CardView) findViewById(R.id.card2);
         button = (Button) findViewById(R.id.saveButton);
@@ -172,9 +175,24 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 == PackageManager.PERMISSION_GRANTED) {
             //Gets a mapping of contact numbers to number of times the number has been contacted
             contacts = contactsController.getCurrentContacts();
+            contactsMap = contactsController.getContactsMap();
             try {
-                editText1.setText(contacts.length() > 0 ? contacts.getJSONObject(0).getString("phone_number") : "");
-                editText2.setText(contacts.length() > 1 ? contacts.getJSONObject(1).getString("phone_number") : "");
+                String phoneNumber1 = "";
+                String phoneNumber2 = "";
+                String contact1 = "";
+                String contact2 = "";
+                if (contacts.length() > 0) {
+                    phoneNumber1 = PhoneNumberUtils.stripSeparators(contacts.getJSONObject(0).getString("phone_number"));
+                    contact1 = contacts.getJSONObject(0).getString("name");
+                    if (contacts.length() > 1) {
+                        phoneNumber2 = PhoneNumberUtils.stripSeparators(contacts.getJSONObject(1).getString("phone_number"));
+                        contact2 = contacts.getJSONObject(1).getString("name");
+                    }
+                }
+                editText1.setText(phoneNumber1);
+                contactOneTextView.setText(contact1);
+                editText2.setText(phoneNumber2);
+                contactTwoTextView.setText(contact2);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -241,11 +259,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
-            String phonenum1 = editText1.getText().toString();
-            String phonenum2 = editText2.getText().toString();
-            //if both have text 14 length long in them then it will be true && true and set enabled will be true
-            button.setEnabled((phonenum1.length() == 14) && (phonenum2.length() == 14) && !(phonenum1.equals(phonenum2)));
-            transButton.setEnabled(!(phonenum1.length() == 14) || !(phonenum2.length() == 14) || (phonenum1.equals(phonenum2)));
+            String phonenum1 = editText1.getRawText();
+            String phonenum2 = editText2.getRawText();
+            String contact1 = "Contact 1";
+            String contact2 = "Contact 2";
+            if (contactsMap.containsKey(phonenum1))
+                contact1 = contactsMap.get(phonenum1);
+            if (contactsMap.containsKey(phonenum2))
+                contact2 = contactsMap.get(phonenum2);
+            contactOneTextView.setText(contact1);
+            contactTwoTextView.setText(contact2);
+            //if both have text 10 length long in them then it will be true && true and set enabled will be true
+            button.setEnabled((phonenum1.length() == 10) && (phonenum2.length() == 10) && !(phonenum1.equals(phonenum2)));
+            transButton.setEnabled(!(phonenum1.length() == 10) || !(phonenum2.length() == 10) || (phonenum1.equals(phonenum2)));
         }
 
         @Override
@@ -407,8 +433,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[],
-                                           int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[],
+                                           @NonNull int[] grantResults) {
         switch (requestCode) {
             case MY_PERMISSIONS_REQUEST_LOCATION: {
                 if (grantResults.length > 0

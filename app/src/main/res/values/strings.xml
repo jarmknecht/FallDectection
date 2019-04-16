@@ -10,7 +10,10 @@
     <string name="text_contacts_permission">Fall Detection needs permission to access contacts to work fully</string>
     <string name="ok">OK</string>
     <string name="title_activity_maps">Map Activity</string>
-    <string name="message">Please enter in two phone numbers of people you would want to have contacted in case you fall. Be sure to include a space between area code and the rest of the number.</string>
+    <string name="message">Fall Detection has detected two people you contact the most. These two people will be contacted in case you fall. Press save, or edit the contacts then save.</string>
+    <string name="contact_one">Contact 1</string>
+    <string name="contact_two">Contact 2</string>
+    <string name="preference_file_key">contact_preferences</string>
     <string name="appstart">Thank you for choosing Fall Detection! The app will use the two numbers you provided as emergency contacts. It will also
     add contacts who you communicate often with through phone calls or text messages to ensure your safety.</string>
 
